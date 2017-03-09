@@ -627,6 +627,7 @@ void SPI2_IRQHandler(void)
 *******************************************************************************/
 void USART1_IRQHandler(void)
 {
+  printf("u1 irq \n\r");
   RxTxISR_Handler(1);
   
 }
@@ -651,6 +652,7 @@ void USART2_IRQHandler(void)
 *******************************************************************************/
 void USART3_IRQHandler(void)
 {
+  printf("u3 irq \n\r");
   RxTxISR_Handler(3);
 }
 

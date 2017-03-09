@@ -27,7 +27,7 @@
 #include    <LCD_Driver_User.h>
 #include    <LCD_Dis.h>
 
-#define ROB0   	1         //如果是rob0 也统一要勾选
+#define ROB0   	0         //如果是rob0 也统一要勾选
 #define ROB_NEW 1					//先前100片底层程序和 此100片底层程序不一致，新版本统一用ROB_NEW版本
 #define U_DBG  	0
 

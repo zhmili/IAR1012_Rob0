@@ -200,6 +200,7 @@ void start_process(int pid);
 void set_name(char loc, char *pname);
 void select_main(void);
 int key(int loc);
+void start_wait(void);
 int set_digital(int cha , int h_o_l);
 void delay(int sec, int msec);
 void ps2_open(void);

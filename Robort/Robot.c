@@ -854,6 +854,73 @@ int  digit_recognize()
 
 
 /******************************************************************************************
+* 函数功能	: 数字识别  5s 内没有反应就返回 9999
+* 输入参数	: 
+* 返回数值	: void
+*******************************************************************************************/
+extern TRecvBuf RecvBuf[MAX_MODBUS_PORT_NUM];
+int  QR_recognize()
+{
+    int i,j,get;
+    
+    char cmd_con[] ={0x7e,0x00,0x08,0x01,0x00,0x00,0xd6,0xab,0xcd}; //连续扫描
+    char cmd_hd[] ={0x7e,0x00,0x08,0x01,0x00,0x00,0xd4,0xab,0xcd}; //7e0008010000d4abcd 手动模式
+    USART_ITConfig(USART3, USART_IT_RXNE, ENABLE);
+    
+    i = 0;
+    get = 2000;
+    
+    for(i = 0; i<8; i++)
+    {
+      USART_SendData(USART3,cmd_con[i]);
+    }
+    
+    OSTimeDlyHMSM(0,0,0,50);
+    
+    printf("send cmd_con \n\r");
+      
+    for(i = 0; i < RecvBuf[DIGI_REC].act_lenth; i++)
+    {
+      printf("0x%x ",RecvBuf[DIGI_REC].buf[i]);
+    }
+    
+    RecvBuf[DIGI_REC].act_lenth = 0;
+    
+    while(RecvBuf[DIGI_REC].act_lenth == 0)
+    {
+      i++;
+      OSTimeDlyHMSM(0,0,0,1);
+      if(i > 500)
+      {
+        return 9999;
+      }
+    }
+    
+    for(i = 0; i < RecvBuf[DIGI_REC].act_lenth; i++)
+    {
+      if(RecvBuf[DIGI_REC].buf[i] != 0x0D)
+      {
+      get = RecvBuf[DIGI_REC].buf[i];
+      break;
+      }
+    }
+    
+    printf("rec dt 0x%x \n\r",get);
+    
+    for(i = 0; i<8; i++)
+    {
+      USART_SendData(USART3,cmd_hd[i]);
+    }
+    
+    USART_ITConfig(USART3, USART_IT_RXNE, DISABLE);
+    
+    return get ;
+}
+
+
+
+
+/******************************************************************************************
 * 函数功能	: 串口初始化
 * 输入参数	: 
 * 返回数值	: void
@@ -1380,6 +1447,19 @@ int key(int loc)
   {
     middle_button_read();
   }
+}
+
+/******************************************************************************************
+* 函数功能	: 启动读取按键
+* 输入参数	: 
+* 返回数值	: void
+*******************************************************************************************/
+void start_wait()
+{
+  while(key(1) == 0)
+  {
+    OSTimeDlyHMSM(0,0,0,100);
+  };
 }
 
 

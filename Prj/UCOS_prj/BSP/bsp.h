@@ -23,6 +23,9 @@ static  BSP_OS_SEM   BSP_SerLockRx;
 #define  DEF_FAIL                                         0
 #define  DEF_OK                                           1
 
+#define DOWNLOAD_PORT                                     5
+#define DIGI_REC                                          3     //Êý×ÖÊ¶±ð
+
 /*
 *********************************************************************************************************
 *                                               EXTERNS
@@ -215,7 +218,7 @@ typedef enum led{
 #define GPIOB_I2C2_SCL                   DEF_BIT_10
 #define GPIOB_I2C2_SDA                   DEF_BIT_11
 #define GPIOB_CD4510_S0                  DEF_BIT_12
-#define GPIOB_SPI2_SCK_IN1                   DEF_BIT_13
+#define GPIOB_SPI2_SCK_IN1               DEF_BIT_13
 #define GPIOB_SPI2_MISO_IN2                  DEF_BIT_14
 #define GPIOB_SPI2_MOSI_IN3                  DEF_BIT_15
 

@@ -650,12 +650,20 @@ void NVIC_Configuration(void)
   
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
   
-#ifdef ROB_II
+#ifdef 0
   NVIC_InitStructure.NVIC_IRQChannel = UART5_IRQChannel;
   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 4;
   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure); 
+  
+  
+  NVIC_InitStructure.NVIC_IRQChannel = UART3_IRQChannel;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 4;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure); 
+  
   
   NVIC_InitStructure.NVIC_IRQChannel =  EXTI15_10_IRQChannel;
   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
@@ -664,7 +672,7 @@ void NVIC_Configuration(void)
   NVIC_Init(&NVIC_InitStructure);  
 #endif
  
-#ifdef ROB_III
+#ifdef 0
   NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQChannel;
   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 4;
   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
@@ -1151,14 +1159,14 @@ int i;
    {
      clear_digital_out(i);         //为舵机的需要
    }
-    
+   
    SHC245EN1(0);
      
    TIMEx_Base_Configruation(); 
      
    ADC_Configruation();
     
-   UXART_Init(USART1,9600,USART_WordLength_8b,USART_StopBits_1,USART_Parity_No,0,0); 
+   UXART_Init(USART1,9600,USART_WordLength_8b,USART_StopBits_1,USART_Parity_No,1,0); 
     
     //UXART_Init(USART1,115200,USART_WordLength_8b,USART_StopBits_1,USART_Parity_No,1,0);
    #ifdef ROB_III
@@ -1166,7 +1174,7 @@ int i;
    #endif
    
     //UXART_Init(USART2,115200,USART_WordLength_8b,USART_StopBits_1,USART_Parity_No,0,0);
-    UXART_Init(USART3,9600,USART_WordLength_8b,USART_StopBits_1,USART_Parity_No,0,0);
+    UXART_Init(USART3,9600,USART_WordLength_8b,USART_StopBits_1,USART_Parity_No,1,0);
     
    #ifdef ROB_III 
     UXART_Init(UART4,9600,USART_WordLength_8b,USART_StopBits_1,USART_Parity_No,1,0);
@@ -1269,7 +1277,7 @@ int i;
     Tmr_TickInit();// ucos-ii ticks 
     
     OSInit();
-     
+    
     OSTaskCreateExt( start_mainX,                              
                     (void *)0,
                     (OS_STK *)&AppTaskStartStk[APP_TASK_START_STK_SIZE - 1],
@@ -1580,22 +1588,10 @@ break;
 #endif
 
 
-/******************************************************************************************
-* 函数名称	: void RxTxISR_Handler (u8 port)
-* 函数功能	: 串口中断处理函数
-*				  
-* 输入参数	: 
-*		          
-* 返回数值	:
-*		 
-*******************************************************************************************/
-void RxTxISR_Handler (u8 port)
+
+static void DownLoadAct(int port, USART_TypeDef  *USARTx)
 {
-  int i; 
-  USART_TypeDef     *USARTx;
-  
-  USARTx = GetUSARTx(port);
-    
+  int i;
   if(USART_GetITStatus(USARTx, USART_IT_RXNE) != RESET)
   {
     RecvBuf[port].buf[RecvBuf[port].act_lenth]= USART_ReceiveData(USARTx);//RS485_Receive(USART_TypeDef* USARTx)
@@ -1669,6 +1665,113 @@ void RxTxISR_Handler (u8 port)
     }
     */
   }
+  
+}
+
+
+/******************************************************************************************
+* 函数名称	: void RxTxISR_Handler (u8 port)
+* 函数功能	: 串口中断处理函数
+*				  
+* 输入参数	: 
+*		          
+* 返回数值	:
+*		 
+*******************************************************************************************/
+void RxTxISR_Handler (u8 port)
+{
+  int i; 
+  USART_TypeDef     *USARTx;
+  
+  USARTx = GetUSARTx(port);
+  
+  if(port == DOWNLOAD_PORT)
+  {
+    DownLoadAct(port,USARTx);
+  }
+  else if(port == DIGI_REC)
+  {
+    printf("rx hd\n\r");
+    RecvBuf[port].buf[RecvBuf[port].act_lenth]= USART_ReceiveData(USARTx);
+    RecvBuf[port].act_lenth++;
+  }
+  
+#if 0
+  if(USART_GetITStatus(USARTx, USART_IT_RXNE) != RESET)
+  {
+    RecvBuf[port].buf[RecvBuf[port].act_lenth]= USART_ReceiveData(USARTx);//RS485_Receive(USART_TypeDef* USARTx)
+    //USART_SendData(USARTx, RecvBuf[port].buf[RecvBuf[port].act_lenth]);
+    if(RecvBuf[port].act_lenth == 0)
+    {
+      if(RecvBuf[port].buf[0] == '5')                 // 接收到5，放回a 表明是app端
+      {
+        UART_Send(USARTx, 'a');
+      }
+    }
+    RecvBuf[port].act_lenth++;
+  }
+                                     //exp 串口中断内发送数据实验
+  if(RecvBuf[port].act_lenth >= 4)  //sizeof("dow")  本身4个 再加 一个 RecvBuf[port].act_lenth++，总共5个
+  {
+    if((RecvBuf[port].buf[0]== '5')&&(RecvBuf[port].buf[1]== 'd')&&(RecvBuf[port].buf[2]== 'o')&&(RecvBuf[port].buf[3]== 'w'))
+    { 
+       //GPIO_ResetBits(GPIOG, GPIO_Pin_8);
+       //printf("in SetDownLoadRecorder  \n\r");
+       SetDownLoadRecorder();
+       //printf("SetDownLoadRecorder finish \n\r");
+#if 0
+       SetDownLoadRecorder();
+       if ((((*(volatile vu8*)AppDownloadRecAddr)) == 'r')&&(((*(volatile vu8*)(AppDownloadRecAddr+4))) == 'l'))
+       {
+         PutString(2,60,"rl");
+       }
+       else
+       {
+        PutString(2,60,"nrl");
+       }
+#endif
+       
+       NVIC_SETFAULTMASK();
+       //printf("begin GenerateSystemReset \n\r");
+       NVIC_GenerateSystemReset();
+       //printf("end GenerateSystemReset \n\r");
+    } 
+    else if((RecvBuf[port].buf[0]== 's')&&(RecvBuf[port].buf[1]== 'c')&&(RecvBuf[port].buf[2]== 'a')&&(RecvBuf[port].buf[3]== 'n'))
+    {  
+       scan_and_config();
+       for(i = 0; i < RJ_NUM; i++)
+       {
+         UART_Send(USARTx, GPIO_STATE[i].l_num);
+         UART_Send(USARTx, GPIO_STATE[i].h_num);
+       }
+      RecvBuf[port].act_lenth = 0;            //处理完命令后清零
+    }
+    else if((RecvBuf[port].buf[0]== 'v')&&(RecvBuf[port].buf[1]== 'e')&&(RecvBuf[port].buf[2]== 'r')&&(RecvBuf[port].buf[3]== 's'))
+    {
+#if ROB_0
+      UART_Send(USARTx, '0');
+#else
+      UART_Send(USARTx, '1');
+#endif
+      RecvBuf[port].act_lenth = 0;
+    }
+    else 
+    {
+      RecvBuf[port].act_lenth = 0;
+    }
+    /*
+    else if((RecvBuf[port].buf[0]== 'j')&&(RecvBuf[port].buf[1]== 't')&&(RecvBuf[port].buf[2]== 'o')&&(RecvBuf[port].buf[3]== 'f'))
+    {
+      release_jtagswd();
+    }
+    else if((RecvBuf[port].buf[0]== 'j')&&(RecvBuf[port].buf[1]== 't')&&(RecvBuf[port].buf[2]== 'o')&&(RecvBuf[port].buf[3]== 'n'))
+    {
+      enable_jtagswd();
+    }
+    */
+  }
+  
+#endif
   
   if(USART_GetITStatus(USARTx, USART_IT_TXE) != RESET)
   {     
@@ -1861,7 +1964,6 @@ int GetVoiceIndex(void)
      }
      RecvBuf[port].act_lenth = 0;
   }
-  
   return get_int;
 }
 
@@ -1881,6 +1983,9 @@ int SetDownLoadRecorder(void)
   (*(volatile vu8*)TOP_RAM_ADDR_P3) = 'r';
 #else
   FLASH_Status FLASHStatus;
+  
+  (*(volatile vu8*)TOP_RAM_ADDR_P2) = 'c';
+  (*(volatile vu8*)TOP_RAM_ADDR_P3) = 'r';
   
   FLASH_Unlock();
   

@@ -538,7 +538,7 @@ void test(void)
 * 输入参数	: 
 * 返回数值	: void
 *******************************************************************************************/
-int  left_button_read(void)
+int  middle_button_read(void)
 {
    volatile u16 mid;
    s4_0_set(15);			//4051?D??
@@ -560,7 +560,7 @@ int  left_button_read(void)
 * 输入参数	: 
 * 返回数值	: void
 *******************************************************************************************/
-int  middle_button_read(void)
+int  left_button_read(void)
 {
    volatile u16 mid;
    s4_0_set(14);			//4051?D??
