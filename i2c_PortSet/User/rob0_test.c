@@ -518,6 +518,61 @@ void code_test()
 				 get_id = 0;
 				 break;
 				 
+			 case 's':
+				 uart_rec = 0;
+				 printf("i2c write at port1 \n\r");
+				 printf("i2c write :  'd'  \n\r");
+			   uart_buf[0] = 0;
+			   uart_buf[1] = 0;
+			   uart_buf[2] = 0;
+			   uart_buf[3] = 0;
+			   uart_buf[4] = 0;
+				 get_lenth = 0;
+			   set_ready = 0;
+			   get_id = 0;
+			   
+			   while( set_ready == 0);			   
+			 //  get_id = 0x02142;
+			//   printf("please put in eeprom_addr:  \n\r");
+			   printf("set id:%d \n\r",get_id);
+			//   printf("please put write in data  \n\r");
+			//   scanf("%s", seeprom_data);
+			//   ieeprom_addr = atoi(seeprom_addr);
+			//   ieeprom_data = atoi(seeprom_data);
+			   
+			   s4_0_set(0);
+			   GPIO_ResetBits(EX_APORT,EX_APIN);
+			   pin_cfg(GPIO_STATE[0].out_port , GPIO_STATE[0].out_pin ,GPIO_Mode_Out_OD, GPIO_Speed_50MHz);
+				 pin_cfg(GPIO_STATE[0].tim_port , GPIO_STATE[0].tim_pin ,GPIO_Mode_Out_OD, GPIO_Speed_50MHz);
+				 
+				 uart_buf[0] = (unsigned char)(get_id&0x0ff);
+				 uart_buf[1] = (unsigned char)(get_id>>8);
+				 
+				 printf("high 8bit:%d, low 8bit:%d \n\r",uart_buf[1],uart_buf[0]);
+			   ret = i2c_WriteBytes(uart_buf,  0, 2, 0);// addr0 - low8bit , addr1 - high8bit 
+				 
+			   if(ret == 0)
+				 {
+					 printf("ee_WriteBytes err  \n\r");
+				 }
+				 else
+				 {
+					ee_Delay(0x0FFFFF);
+					ee_Delay(0x0FFFFF);
+					ret = get_i2c_id(0);
+					printf("read id: %d  \n\r",ret);
+				 }
+				 
+				 uart_buf[0] = 0;
+			   uart_buf[1] = 0;
+			   uart_buf[2] = 0;
+			   uart_buf[3] = 0;
+				 uart_buf[4] = 0;
+				 get_lenth = 0;
+				 uart_rec = 0; 
+				 get_id = 0;
+				 break;	 
+				 
 			 case 'e':
 				 printf("i2c read at port0 \n\r");
 				 printf("i2c read :  'e'  \n\r");

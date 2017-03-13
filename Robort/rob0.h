@@ -9,6 +9,10 @@
 
 #define SET_CHA_ERR   -1
 
+#define SERVO_I2C_BEG   2
+
+
+
 int analog(int cha);
 int digital(int cha);
 int op_digital(int cha); 

@@ -166,6 +166,9 @@ uint8_t ee_ReadBytes(uint8_t *_pReadBuf, uint16_t _usAddress, uint16_t _usSize, 
 		goto cmd_fail;	/* EEPROM器件无应答 */
 	}	
 	
+       //读取存在问题 少了个脉冲！！！
+        for (i = 0; i < 200; i++);
+        
 	/* 第9步：循环读取数据 */
 	for (i = 0; i < _usSize; i++)
 	{
@@ -190,6 +193,10 @@ cmd_fail: /* 命令执行失败后，切记发送停止信号，避免影响I2C总线上其他设备 */
 	i2c_Stop(port);
 	return 0;
 }
+
+
+
+
 
 
 /*

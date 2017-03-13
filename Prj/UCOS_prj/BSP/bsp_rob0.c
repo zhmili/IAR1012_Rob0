@@ -382,6 +382,37 @@ void s4_0_set(char num)
    // for(; count != 0; count--);
 }
 
+/*******************************************************************************
+* Function Name  : pin_cfg 				
+* Description    : 
+* Input          : 
+* Output         : None
+* Return         : None
+*******************************************************************************/
+void get_i2c_id(u8 port)
+{
+  uint8_t res;
+  uint8_t rd_buf[3];
+  
+  res = ee_ReadBytes(rd_buf, 0, 2, port);
+  
+  if(res  == 0)
+  {
+    printf("read err\n\r");
+  }
+  else
+  {
+    printf("read ok\n\r");
+    printf("read id is %x\n\r",rd_buf[0]+ rd_buf[1]<<8);
+  }
+  
+  
+  GPIO_STATE[port].l_num = rd_buf[0];
+  GPIO_STATE[port].h_num = rd_buf[1];
+  
+}
+
+
 
 /*******************************************************************************
 * Function Name  : pin_cfg 				
@@ -1014,6 +1045,10 @@ void pin_final_cfg(void)
         break;
 
       case I2C_18:
+        printf("i2c found !\n\r");
+        pin_cfg(GPIO_STATE[i].tim_port, GPIO_STATE[i].tim_pin ,GPIO_Mode_Out_OD,GPIO_Speed_50MHz);
+        pin_cfg(GPIO_STATE[i].out_port, GPIO_STATE[i].out_pin ,GPIO_Mode_Out_OD,GPIO_Speed_50MHz);
+        //get_i2c_id(i);
         break;
         
       default:

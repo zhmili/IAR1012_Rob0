@@ -331,17 +331,39 @@ void off(int cha)
 
 /******************************************************************************************
 * 函数功能	: 伺服电机设置
-* 输入参数	: s	1-4 伺服电机编号
-*				: p  	0-1000	设置伺服电机输入的转动量
+* 输入参数	: s
+*		: p  	0-1000	设置伺服电机输入的转动量
 * 返回数值	: void
 *******************************************************************************************/
 void servo(int cha, int p)
 {
   int i;
+  uint16_t res;
+  unsigned int up;
+  uint8_t wr_buf[3];
+  
+#if 0
   if((cha > 0)&&(cha < 12))
   {
     i = p+250;
     set_pwm(GPIO_STATE[cha-1].TIM, GPIO_STATE[cha-1].tim_ch, i);
+  }
+#endif
+  if((cha > 0)&&(cha < 12))
+  {
+    up = (unsigned int)p;
+    wr_buf[0] = (up&0x0FF);
+    wr_buf[1] = (up >> 8)&0x0FF;
+    res = i2c_WriteBytes(wr_buf, SERVO_I2C_BEG, 2, cha - 1);
+    
+    if(res == 0)
+    {
+      printf("servo err \n\r");
+    }
+    else
+    {
+     printf("servo ok \n\r");
+    }
   }
 }
 

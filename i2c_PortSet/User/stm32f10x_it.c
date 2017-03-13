@@ -161,20 +161,20 @@ void UART5_IRQHandler(void)
 	}
 	else if((uart_rec == 'E'))
 	{
-    if(get_lenth == 0)
+    if(get_lenth == 1)
 		{
 			get_id = 0;
 		}
-		else if(get_lenth == 1){
+		else if(get_lenth == 2){
 			get_id = uart_buf[0] - '0';
 		}
-		else if(get_lenth == 2){
+		else if(get_lenth == 3){
 			get_id = (uart_buf[0] - '0')*10 + (uart_buf[1] - '0');
 		}
-		else if(get_lenth == 3){
-			get_id = (uart_buf[0] - '0')*100 + (uart_buf[1] - '0')*10 + (uart_buf[3] - '0');
-		}
 		else if(get_lenth == 4){
+			get_id = (uart_buf[0] - '0')*100 + (uart_buf[1] - '0')*10 + (uart_buf[2] - '0');
+		}
+		else if(get_lenth == 5){
 			get_id = (uart_buf[0] - '0')*1000 + (uart_buf[1] - '0')*100 + (uart_buf[2] - '0')*10 + (uart_buf[3] - '0');
 		}
 		

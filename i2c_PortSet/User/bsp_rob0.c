@@ -966,7 +966,7 @@ int get_i2c_id(int chan)
 	}
 	else
 	{
-		ret = (ReadBuf[0] + ReadBuf[1])<<8;
+		ret = (ReadBuf[0] + (ReadBuf[1]<<8));
 		return ret;
 	}
 		

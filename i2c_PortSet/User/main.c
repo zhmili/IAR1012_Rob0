@@ -57,7 +57,7 @@ int main(void)
 		pin_cfg(GPIO_STATE[0].tim_port , GPIO_STATE[0].tim_pin ,GPIO_Mode_Out_OD, GPIO_Speed_50MHz);
   #endif
 	
-		ee_CheckOk(0);
+		//ee_CheckOk(0);
 		//ee_Test(0);
 	
     code_test();

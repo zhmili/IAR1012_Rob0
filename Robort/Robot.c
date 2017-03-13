@@ -496,10 +496,8 @@ int compass()
 * 输入参数	: s	1-6 伺服电机编号
 *		: p  	0-1000	设置伺服电机输入的转动量
 * 返回数值	: void
-* 说明          :舵机参数 周期 18ms<=F<20ms，脉冲宽度1ms 右转极限位置，1.5ms 静止，2ms 左转极限位置
-*                0.5ms - 2.5ms 之间
-*               : 250 ->1ms  375 ->1.5ms  500 ->2ms
-*1000 - 20ms  
+* 说明          :舵机参数  0.5ms - 2.5ms 之间
+*1000 - 20ms    
 *1000 - 20ms     200 - 0.4ms 250 - 0.5ms  500 - 1ms 750 - 1.5ms  1000 - 2ms 1250 - 2.5ms 1350 -2.6ms
 *200 -1200 --    Futaba S3003
 *那英特 0 - 4800 --> 0 - 1000
@@ -854,66 +852,81 @@ int  digit_recognize()
 
 
 /******************************************************************************************
-* 函数功能	: 数字识别  5s 内没有反应就返回 9999
+* 函数功能	: 1、数字识别  5s 内没有反应就返回 9999
+				
 * 输入参数	: 
-* 返回数值	: void
+* 返回数值	: 5s 内没有反应就返回 9999, 只输出 0 - 9, A -z , 单个ascii 码
+* 硬件连接     : 接主板串口2
 *******************************************************************************************/
-extern TRecvBuf RecvBuf[MAX_MODBUS_PORT_NUM];
 int  QR_recognize()
 {
-    int i,j,get;
-    
+    int i,j,get,rec_num;
+    char recdt[10];
+    char cmd_com[] ={0x7e,0x00,0x08,0x01,0x00,0x0d,0x80,0xab,0xcd}; //串口输出
     char cmd_con[] ={0x7e,0x00,0x08,0x01,0x00,0x00,0xd6,0xab,0xcd}; //连续扫描
     char cmd_hd[] ={0x7e,0x00,0x08,0x01,0x00,0x00,0xd4,0xab,0xcd}; //7e0008010000d4abcd 手动模式
-    USART_ITConfig(USART3, USART_IT_RXNE, ENABLE);
-    
+   rec_num = 0;
     i = 0;
-    get = 2000;
+    j = 0;
+    get = -1;
     
-    for(i = 0; i<8; i++)
+     for(i = 0; i<9; i++)
     {
-      USART_SendData(USART3,cmd_con[i]);
+      USART_SendData(USART3,cmd_com[i]);								//串口输出模式
+      while (USART_GetFlagStatus(USART3, USART_FLAG_TXE) == RESET);	
+    }
+   
+     for(i = 0; i<9; i++)
+    {
+      USART_SendData(USART3,cmd_con[i]);								   //连续扫描
+      while (USART_GetFlagStatus(USART3, USART_FLAG_TXE) == RESET);
+    }
+   
+loop0: 	 
+     while(rec_num <12)				//
+    {
+	    while(USART_GetFlagStatus(USART3, USART_FLAG_RXNE) == RESET)
+	    {
+	      OSTimeDlyHMSM(0,0,0,1);
+	      j++;
+	      if(j > 5000)  										// 无秒内无信号 则退出
+	      {
+	      	  for(i = 0; i<9; i++)							//关闭
+			    {
+			      USART_SendData(USART3,cmd_hd[i]);
+			      while (USART_GetFlagStatus(USART3, USART_FLAG_TXE) == RESET);
+			    }
+	      	  return 9999;
+	      }
+	    }
+	    j = 0;
+	    recdt[rec_num] = UART_Receive(USART3);
+	    rec_num++;
     }
     
-    OSTimeDlyHMSM(0,0,0,50);
-    
-    printf("send cmd_con \n\r");
-      
-    for(i = 0; i < RecvBuf[DIGI_REC].act_lenth; i++)
-    {
-      printf("0x%x ",RecvBuf[DIGI_REC].buf[i]);
-    }
-    
-    RecvBuf[DIGI_REC].act_lenth = 0;
-    
-    while(RecvBuf[DIGI_REC].act_lenth == 0)
-    {
-      i++;
-      OSTimeDlyHMSM(0,0,0,1);
-      if(i > 500)
-      {
-        return 9999;
-      }
-    }
-    
-    for(i = 0; i < RecvBuf[DIGI_REC].act_lenth; i++)
-    {
-      if(RecvBuf[DIGI_REC].buf[i] != 0x0D)
-      {
-      get = RecvBuf[DIGI_REC].buf[i];
-      break;
-      }
-    }
-    
-    printf("rec dt 0x%x \n\r",get);
-    
-    for(i = 0; i<8; i++)
+    for(i = 0; i<9; i++)										//配置到手动模式
     {
       USART_SendData(USART3,cmd_hd[i]);
+      while (USART_GetFlagStatus(USART3, USART_FLAG_TXE) == RESET);
     }
     
-    USART_ITConfig(USART3, USART_IT_RXNE, DISABLE);
-    
+   if(recdt[10] != 0x0d)
+   {
+   	get = recdt[10];
+   }
+   else
+   {
+   	get = recdt[9];
+   }
+   
+   //取asc-ii ， 0 - 9, a-Z
+   
+   if((get < '0' )||(get > 'z')||((get > '9')&&(get < 'A')))
+   {
+   	rec_num = 0;
+   	j = 0; 
+   	goto loop0;
+   }
     return get ;
 }
 

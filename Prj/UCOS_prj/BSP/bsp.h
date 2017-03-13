@@ -17,7 +17,7 @@
 typedef OS_EVENT    *BSP_OS_SEM;
 static  BSP_OS_SEM   BSP_SerLockRx;
 
-#define ROB_0                                             0
+#define ROB_0                                             1
 #define UART_PRINTF                                       1
 
 #define  DEF_FAIL                                         0
