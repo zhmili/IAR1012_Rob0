@@ -73,6 +73,37 @@
 	#define    LCD_MI_PORT                          GPIOB
 	#define    LCD_MI_PIN                           GPIO_Pin_14
 
+
+////////////////////////////////////////////////////74HC4051 IO
+#define    EX_APORT	             		GPIOA
+#define    EX_APIN           			GPIO_Pin_4
+#define    EX_APCH           			ADC_Channel_4
+
+#define    EX_AS0PORT	             		GPIOC
+#define    EX_AS0PIN           			GPIO_Pin_13
+
+#define    EX_AS1PORT	             		GPIOC
+#define    EX_AS1PIN           			GPIO_Pin_14
+
+#define    EX_AS2PORT	             		GPIOC
+#define    EX_AS2PIN           			GPIO_Pin_15
+
+#define    EX_AS3PORT	             		GPIOA
+#define    EX_AS3PIN           			GPIO_Pin_14
+
+#define    EX_AS4PORT	             		GPIOB
+#define    EX_AS4PIN           			GPIO_Pin_2
+
+
+
+#define S0(x)     (EX_AS0PORT->ODR = (EX_AS0PORT->ODR & ~EX_AS0PIN) | (x ? EX_AS0PIN :0))
+#define S1(x)     (EX_AS1PORT->ODR = (EX_AS1PORT->ODR & ~EX_AS1PIN) | (x ? EX_AS1PIN :0))
+#define S2(x)     (EX_AS2PORT->ODR = (EX_AS2PORT->ODR & ~EX_AS2PIN) | (x ? EX_AS2PIN :0))
+#define S3(x)     (EX_AS3PORT->ODR = (EX_AS3PORT->ODR & ~EX_AS3PIN) | (x ? EX_AS3PIN :0))
+#define S4(x)     (EX_AS4PORT->ODR = (EX_AS4PORT->ODR & ~EX_AS4PIN) | (x ? EX_AS4PIN :0))
+
+#define S4_0(x4,x3,x2,x1,x0)  S0(x0);S1(x1);S2(x2);S3(x3);S4(x4);
+
 #else
 
 	#define    LCD_CS_PORT                          GPIOD         

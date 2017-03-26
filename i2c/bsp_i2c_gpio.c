@@ -146,7 +146,7 @@ uint8_t i2c_ReadByte(int port)
 		i2c_Delay();
 		if (macI2C_SDA_READ(port))
 		{
-			value++;
+		   value++;
 		}
 		macI2C_SCL_0(port);
 		i2c_Delay();
@@ -172,11 +172,11 @@ uint8_t i2c_WaitAck(int port)
 	i2c_Delay();
 	if (macI2C_SDA_READ(port))	/* CPU读取SDA口线状态 */
 	{
-		re = 1;
+	    re = 1;
 	}
 	else
 	{
-		re = 0;
+	    re = 0;
 	}
 	macI2C_SCL_0(port);
 	i2c_Delay();
@@ -272,3 +272,4 @@ uint8_t i2c_CheckDevice(uint8_t _Address, int port)
 	}
 	return 1;	/* I2C总线异常 */
 }
+

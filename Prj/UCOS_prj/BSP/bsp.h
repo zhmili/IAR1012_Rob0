@@ -17,7 +17,14 @@
 typedef OS_EVENT    *BSP_OS_SEM;
 static  BSP_OS_SEM   BSP_SerLockRx;
 
-#define ROB_0                                             1
+#if defined (CFG_MODULE_x_DEBUG_EN) && (CFG_MODULE_x_DEBUG_EN > 0)
+#define MODULE_x_DEBUG    printf
+#else 
+#define MODULE_x_DEBUG    1 ? (void) 0 : (void) printf
+#endif
+
+
+#define ROB_0                                             0
 #define UART_PRINTF                                       1
 
 #define  DEF_FAIL                                         0
@@ -165,6 +172,23 @@ typedef enum led{
     LED_ON = 1,
 
 }ELED;
+
+
+typedef enum CMD{
+  NCMD = 0,
+  VERS = 1,
+  SCAN = 2,
+  DOWN = 3,
+
+
+}ECMD;
+
+
+typedef struct comm{
+  INT8U cmd;
+  USART_TypeDef* USARTx;
+}TCOMM;
+
 
 
 /*
@@ -477,6 +501,7 @@ void DelayNms(u16 ms);
 int GetVoiceIndex(void);
 int SetDownLoadRecorder(void);
 void led_flash(ELED en);
+
 
 
 //ucModbus ÷– π”√ 

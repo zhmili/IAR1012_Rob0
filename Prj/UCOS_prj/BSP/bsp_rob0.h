@@ -37,6 +37,8 @@
 #define TIM_PRESC_50HZ    143
 
 
+#define SERVO_I2C_ID     0x500
+
 typedef enum emode{
   NO_MODE_0 = 0,
   DIG_OUT_PUT_1 = 1,

@@ -219,6 +219,15 @@ static void AppChoose(u8 *pData, u32 *pLen, volatile eCOM_STATUS *peStat)
     {
 			////如果是中途拔线不能跳入 app
 #if ROB_NEW
+
+			if((left_button_read() == 0)&&(middle_button_read() == 0))
+			{
+				PutString(5,0,"ForceDownLoad...!");
+				
+				*peStat = eCOMInput;
+			}			
+			else 
+				
 			if((((*(volatile vu8*)TOP_RAM_ADDR_P2) == 'c')&&((*(volatile vu8*)TOP_RAM_ADDR_P3) = 'r'))||((*(volatile vu8*)AppDownloadRecAddr) ) != 'r')
 			{
 				(*(volatile vu8*)TOP_RAM_ADDR_P2) = '0';

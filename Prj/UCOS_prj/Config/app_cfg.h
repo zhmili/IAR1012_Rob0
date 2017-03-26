@@ -55,6 +55,7 @@
 #define  ROB_TASK3_ID                         3
 #define  ROB_TASK4_ID                         4
 #define  ROB_TASK5_ID                         5
+
 #define  ROB_TASK6_ID                         6
 /*
 *********************************************************************************************************
@@ -62,7 +63,7 @@
 *********************************************************************************************************
 */
 
-#define  APP_TASK_START_PRIO                   2
+#define  APP_TASK_START_PRIO                   3
 //#define  APP_TASK_KBD_PRIO                     4
 //#define  APP_TASK_USER_IF_PRIO                 5
 //#define  APP_TASK_PROBE_STR_PRIO               6
@@ -74,12 +75,13 @@
 #define  OS_TASK_TMR_PRIO              (OS_LOWEST_PRIO - 2)
 
 
-#define ROB_TASK1              3
-#define ROB_TASK2              4
-#define ROB_TASK3              5
-#define ROB_TASK4              6
-#define ROB_TASK5              7
-#define ROB_TASK6              8
+#define ROB_TASK1              4
+#define ROB_TASK2              5
+#define ROB_TASK3              6
+#define ROB_TASK4              7
+#define ROB_TASK5              8
+
+#define ROB_TASK6              2        //task6 优先级高于其他优先级 用于串口状态扫描
 
 /*
 *********************************************************************************************************

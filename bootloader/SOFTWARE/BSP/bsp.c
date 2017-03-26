@@ -38,7 +38,222 @@ void DelayNms(u16 ms)
 
 }
 
+#if ROB0
+/*******************************************************************************
+* Function Name  : pin_cfg 				
+* Description    : 
+* Input          : 
+* Output         : None
+* Return         : None
+*******************************************************************************/
+void pin_cfg(GPIO_TypeDef* GPIOx, u16 GPIO_Pinx ,GPIOMode_TypeDef GPIO_Modex, GPIOSpeed_TypeDef GPIO_Speed)
+{
+  GPIO_InitTypeDef GPIO_InitStructure;
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pinx;
+  GPIO_InitStructure.GPIO_Speed= GPIO_Speed;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Modex;
+  GPIO_Init(GPIOx, &GPIO_InitStructure);		
+}
 
+/*******************************************************************************
+* Function Name  : pin_com_cfg
+* Description    : ????
+* Input          : None
+* Output         : None
+* Return         : None
+*******************************************************************************/
+void pin_com_cfg(void)
+{
+	//GPIO_PinRemapConfig(GPIO_Remap_SWJ_Disable, ENABLE);				//SWJ????( JTAG+SW-DP)	
+	//GPIO_PinRemapConfig(GPIO_Remap_SWJ_NoJTRST, ENABLE);	      
+  
+  pin_cfg(EX_APORT,EX_APIN,GPIO_Mode_AIN, GPIO_Speed_2MHz);			//PA4,4051?ADC??
+  
+  pin_cfg(EX_AS0PORT,EX_AS0PIN,GPIO_Mode_Out_PP,GPIO_Speed_2MHz);
+  pin_cfg(EX_AS1PORT,EX_AS1PIN,GPIO_Mode_Out_PP,GPIO_Speed_2MHz);
+  pin_cfg(EX_AS2PORT,EX_AS2PIN,GPIO_Mode_Out_PP,GPIO_Speed_2MHz);
+  pin_cfg(EX_AS3PORT,EX_AS3PIN,GPIO_Mode_Out_PP,GPIO_Speed_2MHz);
+  pin_cfg(EX_AS4PORT,EX_AS4PIN,GPIO_Mode_Out_PP,GPIO_Speed_2MHz);
+}
+
+u16 get_adc_value(ADC_TypeDef*  ADCx ,u8 adc_channel)
+{
+  volatile u16 data;
+  ADC_InitTypeDef ADC_InitStructure;
+  
+  ADC_DeInit(ADCx);
+  //  channel = SetAddr(ADC_GROUP);
+  ADC_InitStructure.ADC_Mode = ADC_Mode_Independent;
+  ADC_InitStructure.ADC_ScanConvMode = DISABLE;
+  ADC_InitStructure.ADC_ContinuousConvMode = ENABLE;
+  ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None;
+  ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
+  ADC_InitStructure.ADC_NbrOfChannel = 1;
+  ADC_Init(ADCx, &ADC_InitStructure);
+  
+   /* ADC1 regular channel10 configuration */
+  ADC_RegularChannelConfig(ADCx, adc_channel, 1, ADC_SampleTime_7Cycles5);
+  
+  /* Enable ADC1 */
+  ADC_Cmd(ADCx, ENABLE);
+  
+  /* Enable ADC1 reset calibaration register */
+  ADC_ResetCalibration(ADCx);
+  
+  /* Check the end of ADC1 reset calibration register */
+  while(ADC_GetResetCalibrationStatus(ADCx));
+  
+  /* Start ADC1 calibaration */
+  ADC_StartCalibration(ADCx);
+  
+  /* Check the end of ADC1 calibration */
+  while(ADC_GetCalibrationStatus(ADCx));
+   
+  ADC_ClearFlag(ADCx, ADC_FLAG_EOC);
+	
+  /* Start ADC1 Software Conversion */
+  ADC_SoftwareStartConvCmd(ADCx, ENABLE);
+  while(ADC_GetSoftwareStartConvStatus(ADCx));
+  
+  while(!ADC_GetFlagStatus(ADCx, ADC_FLAG_EOC));
+  
+  data = ADC_GetConversionValue(ADCx);
+  return data;
+}
+
+/*******************************************************************************
+* Function Name  : s4s0_set  				74HC4051  S4-S0 
+* Description    : 
+* Input          : 
+* Output         : None
+* Return         : None
+*******************************************************************************/
+void s4_0_set(char num)
+{
+  int count ;
+  switch(num)
+  {
+   case 10:
+      S4_0(1,0,0,1,0);
+      break;
+      
+   case 9:
+      S4_0(1,0,1,1,0);
+      break;
+      
+   case 8:
+      S4_0(1,0,1,0,0);
+      break;
+      
+   case 7:
+      S4_0(1,0,1,1,1);
+      break;   
+      
+   case 6:
+      S4_0(1,0,1,0,1);
+      break;  
+	
+   case 5:
+      S4_0(0,1,0,1,1);
+      break; 
+  
+   case 4:
+      S4_0(0,1,0,0,0);
+      break; 
+      
+   case 3:
+      S4_0(0,1,0,0,1);
+      break; 
+      
+   case 2:
+      S4_0(0,1,0,1,0);
+      break;     
+
+    case 1:             //RJ2
+      S4_0(0,1,1,0,0);
+      break; 
+
+    case 0:            //RJ1
+      S4_0(0,1,1,1,0);
+      break; 
+      
+    case  11:         //RJ12
+      S4_0(0,1,1,1,1);
+      break;
+      
+    case 12:
+      S4_0(0,1,1,0,1);
+      break;
+
+    case 13:
+      S4_0(1,0,0,0,1);
+      break;
+      
+    case 14:
+      S4_0(1,0,0,1,1);
+      break;
+      
+    case 15:
+      S4_0(1,0,0,0,0);
+      break;
+    
+    default : 
+      break;
+    }
+}
+
+
+int   left_button_read()
+{
+	 volatile u16 mid;
+   s4_0_set(14);			//4051?D??
+   pin_cfg(EX_APORT,EX_APIN,GPIO_Mode_AIN, GPIO_Speed_2MHz);			//PA4,4051µ?ADC???ú
+
+   mid = get_adc_value(ADC1, EX_APCH);	
+
+   if(mid < 904)		//1.1V??óD°'?ü°'??ê±µíµ???
+    return 0;			//·µ??1±íê?óD°'?ü°'??
+    else
+    return 1;
+}
+
+int  middle_button_read()
+{
+	volatile u16 mid;
+   s4_0_set(15);			//4051?D??
+   pin_cfg(EX_APORT,EX_APIN,GPIO_Mode_AIN, GPIO_Speed_2MHz);			//PA4,4051µ?ADC???ú
+	
+   mid = get_adc_value(ADC1, EX_APCH);	
+
+   if(mid < 904)		//1.1V??óD°'?ü°'??ê±µíµ???
+	return 0;			//·µ??1±íê?óD°'?ü°'??
+   else
+	return 1;
+}
+
+#else
+/******************************************************************************************
+* ????	: ?????
+* ????	: 
+* ????	: void
+*******************************************************************************************/
+int   left_button_read()
+{
+return GPIO_ReadInputDataBit(GPIOG,GPIO_Pin_11);
+
+}
+
+/******************************************************************************************
+* ????	: ??????
+* ????	: 
+* ????	: void
+*******************************************************************************************/
+int  middle_button_read()
+{
+return GPIO_ReadInputDataBit(GPIOG,GPIO_Pin_15);
+
+}
+#endif
 
 /*******************************************************************************
 * Function Name  : RCC_Configuration
@@ -119,7 +334,7 @@ void GPIO_Configuration(void)
 
 
 #if ROB0
-
+	pin_com_cfg();
 #else
   
 // REMAP
@@ -509,41 +724,7 @@ int SetDownLoadRecorder(char parm1, char parm2)
 
 }
 
-#if ROB0
 
-int   left_button_read()
-{
-	return 1;
-}
-
-int  middle_button_read()
-{
-	return 1;
-}
-
-#else
-/******************************************************************************************
-* ????	: ?????
-* ????	: 
-* ????	: void
-*******************************************************************************************/
-int   left_button_read()
-{
-return GPIO_ReadInputDataBit(GPIOG,GPIO_Pin_11);
-
-}
-
-/******************************************************************************************
-* ????	: ??????
-* ????	: 
-* ????	: void
-*******************************************************************************************/
-int  middle_button_read()
-{
-return GPIO_ReadInputDataBit(GPIOG,GPIO_Pin_15);
-
-}
-#endif
 
 
 /*********************************** END **************************************/

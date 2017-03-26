@@ -147,7 +147,7 @@ void GPIO_Init(GPIO_TypeDef* GPIOx, GPIO_InitTypeDef* GPIO_InitStruct)
   if (((u32)GPIO_InitStruct->GPIO_Pin & ((u32)0x00FF)) != 0x00)
   {
     tmpreg = GPIOx->CRL;
-
+    
     for (pinpos = 0x00; pinpos < 0x08; pinpos++)
     {
       pos = ((u32)0x01) << pinpos;

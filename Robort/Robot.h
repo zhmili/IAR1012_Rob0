@@ -113,7 +113,6 @@ extern void mainX7(void);
   #define EMOT0_PID_I          116
   #define EMOT0_PID_D          117
   
-  
   int digital(int p);
                                                                                                                             
   int analog(int p);
@@ -140,7 +139,7 @@ extern void mainX7(void);
   
   int  digit_recognize(void);
   
-  int QR_recognize(void);
+  int  QR_recognize(void);
   
   void uart_init(int port, int baud_rate);
   
@@ -203,7 +202,7 @@ void start_process(int pid);
 void set_name(char loc, char *pname);
 void select_main(void);
 int key(int loc);
-void start_wait(void);
+void press_go_on(void);
 int set_digital(int cha , int h_o_l);
 void delay(int sec, int msec);
 void ps2_open(void);
@@ -211,4 +210,5 @@ void ps2_scan(int delay_ms);
 int ps2_read(int kind);
 void ps2_write(int vib,int delay_ms);
 void ps2_close(void);
+
 #endif

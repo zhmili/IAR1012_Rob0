@@ -328,11 +328,11 @@ void s4_0_set(char num)
    case 6:
       S4_0(1,0,1,0,1);
       break;  
-	
+      
    case 5:
       S4_0(0,1,0,1,1);
       break; 
-  
+      
    case 4:
       S4_0(0,1,0,0,0);
       break; 
@@ -389,29 +389,56 @@ void s4_0_set(char num)
 * Output         : None
 * Return         : None
 *******************************************************************************/
-void get_i2c_id(u8 port)
+int get_i2c_id(int chan)
 {
-  uint8_t res;
-  uint8_t rd_buf[3];
-  
-  res = ee_ReadBytes(rd_buf, 0, 2, port);
-  
-  if(res  == 0)
-  {
-    printf("read err\n\r");
-  }
-  else
-  {
-    printf("read ok\n\r");
-    printf("read id is %x\n\r",rd_buf[0]+ rd_buf[1]<<8);
-  }
-  
-  
-  GPIO_STATE[port].l_num = rd_buf[0];
-  GPIO_STATE[port].h_num = rd_buf[1];
-  
+        int i;
+	int ret;
+        char get_pin;
+	uint8_t ReadBuf[2];
+#if 1       
+        pin_cfg(EX_APORT,EX_APIN,GPIO_Mode_Out_PP, GPIO_Speed_2MHz);
+        GPIO_ResetBits(EX_APORT,EX_APIN);
+	s4_0_set(chan);
+#endif 
+        
+#if 0   
+        pin_cfg(GPIO_STATE[chan].ad_port , GPIO_STATE[chan].ad_pin ,GPIO_Mode_Out_PP, GPIO_Speed_50MHz);//scl
+        GPIO_ResetBits(GPIO_STATE[chan].ad_port,GPIO_STATE[chan].ad_pin);
+#endif      
+	pin_cfg(GPIO_STATE[chan].out_port , GPIO_STATE[chan].out_pin ,GPIO_Mode_Out_OD, GPIO_Speed_50MHz);//scl
+	pin_cfg(GPIO_STATE[chan].tim_port , GPIO_STATE[chan].tim_pin ,GPIO_Mode_Out_OD, GPIO_Speed_50MHz);//sda	
+        
+        
+        {
+            for(i = 0; i < 3; i++)
+            {
+               ret = ee_ReadBytes(ReadBuf, 0, 2, chan);
+               if(ret != 0)
+               {
+                  break;
+               }
+            }
+            
+  #if 1     
+          GPIO_SetBits(EX_APORT,EX_APIN);
+          s4_0_set(chan+1);
+          pin_cfg(EX_APORT,EX_APIN,GPIO_Mode_AIN, GPIO_Speed_2MHz);
+  #endif  
+  #if 0
+         GPIO_SetBits(GPIO_STATE[chan].ad_port,GPIO_STATE[chan].ad_pin);
+  #endif      
+          if(ret == 0)
+          {
+            PutString(0,108,"E:get_i2c_id");
+            return -1;
+          }
+          else
+          {
+            ret = (ReadBuf[0] + (ReadBuf[1]<<8));
+            return ret;
+          }
+       }
 }
-
 
 
 /*******************************************************************************
@@ -952,6 +979,26 @@ void scan_port(void)
 }
 #endif
 
+/*******************************************************************************
+* Function Name  : 
+* Description    : 
+* Input          : 
+* Output         : None
+* Return         : None
+*******************************************************************************/
+void pars_id(int id, int chan)
+{
+  switch(id)
+  {
+  case SERVO_I2C_ID:
+    GPIO_STATE[chan].h_num = ((SERVO_I2C_ID >> 8)&0x0FF);
+    GPIO_STATE[chan].l_num = (SERVO_I2C_ID &0x0FF);
+    break;
+  
+  }
+
+}
+
 
 /*******************************************************************************
 * Function Name  : 
@@ -962,7 +1009,7 @@ void scan_port(void)
 *******************************************************************************/
 void pin_final_cfg(void)
 {
-  int i;
+  int i,id;
   
   for(i = 0; i < COM_CH_NUM; i++)
   {
@@ -1043,12 +1090,12 @@ void pin_final_cfg(void)
       case SOUND_CTRL_15:
         pin_cfg(GPIO_STATE[i].ad_port , GPIO_STATE[i].ad_pin ,GPIO_Mode_IN_FLOATING, GPIO_Speed_2MHz);	
         break;
-
+      
       case I2C_18:
-        printf("i2c found !\n\r");
-        pin_cfg(GPIO_STATE[i].tim_port, GPIO_STATE[i].tim_pin ,GPIO_Mode_Out_OD,GPIO_Speed_50MHz);
-        pin_cfg(GPIO_STATE[i].out_port, GPIO_STATE[i].out_pin ,GPIO_Mode_Out_OD,GPIO_Speed_50MHz);
-        //get_i2c_id(i);
+        
+        id = get_i2c_id(i);
+        
+        pars_id(id,i);
         break;
         
       default:
@@ -1217,15 +1264,18 @@ void test_sim_forward()
 *******************************************************************************/
 void scan_and_config()
 {
+#if 0
   GPIO_DeInit(GPIOA);
   GPIO_DeInit(GPIOB);
   GPIO_DeInit(GPIOC);
   GPIO_DeInit(GPIOD);
   GPIO_DeInit(GPIOE);
+#endif
   pin_com_cfg();
   scan_port();
   judge();
   pin_final_cfg();
+  
 }
 
 

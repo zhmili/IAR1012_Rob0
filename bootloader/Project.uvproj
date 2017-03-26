@@ -532,6 +532,11 @@
               <FileType>1</FileType>
               <FilePath>.\SOFTWARE\FWLib\LIB\stm32f10x_iwdg.c</FilePath>
             </File>
+            <File>
+              <FileName>stm32f10x_adc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SOFTWARE\FWLib\LIB\stm32f10x_adc.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

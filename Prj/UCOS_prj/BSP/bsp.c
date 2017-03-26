@@ -35,6 +35,8 @@ extern TGPIO_STATE GPIO_STATE[16];
 
 TRecvBuf RecvBuf[MAX_MODBUS_PORT_NUM];
 
+TCOMM COMM;
+
 unsigned char fun_name[16][80];  // 每一组编号 对应的名字
 
 char fun_num;
@@ -1145,9 +1147,13 @@ int i;
   UXART_Init(UART4,9600,USART_WordLength_8b,USART_StopBits_1,USART_Parity_No,1,0);    
   UXART_Init(UART5,115200,USART_WordLength_8b,USART_StopBits_1,USART_Parity_No,1,0);
   release_jtagswd();
+#if 0
   scan_port();
   judge();
   pin_final_cfg();
+#endif
+  
+  scan_and_config();
   
 #else
    
@@ -1446,10 +1452,10 @@ break;
 
 void start_mainX(void *p_arg)
 {
-     
+  int i;
   OSTaskCreateExt(process_6,                              
                     (void *)0,
-                     &ROBTask6Stk[ROB_ALL_TASK_SIZE-1],
+                    &ROBTask6Stk[ROB_ALL_TASK_SIZE-1],
                     ROB_TASK6,
                     ROB_TASK6,
                     (OS_STK *)&ROBTask6Stk[0],
@@ -1459,8 +1465,7 @@ void start_mainX(void *p_arg)
   mainX(p_arg);
   
   while(1)
-  {
-  
+  { 
   OSTimeDlyHMSM(0,0,0,100);
   }
 }
@@ -1605,7 +1610,7 @@ static void DownLoadAct(int port, USART_TypeDef  *USARTx)
     }
     RecvBuf[port].act_lenth++;
   }
-                                     //exp 串口中断内发送数据实验
+                                    //exp 串口中断内发送数据实验
   if(RecvBuf[port].act_lenth >= 4)  //sizeof("dow")  本身4个 再加 一个 RecvBuf[port].act_lenth++，总共5个
   {
     if((RecvBuf[port].buf[0]== '5')&&(RecvBuf[port].buf[1]== 'd')&&(RecvBuf[port].buf[2]== 'o')&&(RecvBuf[port].buf[3]== 'w'))
@@ -1632,13 +1637,20 @@ static void DownLoadAct(int port, USART_TypeDef  *USARTx)
        //printf("end GenerateSystemReset \n\r");
     } 
     else if((RecvBuf[port].buf[0]== 's')&&(RecvBuf[port].buf[1]== 'c')&&(RecvBuf[port].buf[2]== 'a')&&(RecvBuf[port].buf[3]== 'n'))
-    {  
+    { 
+      if(COMM.cmd == NCMD)
+      {
+        COMM.cmd = SCAN;
+        COMM.USARTx = USARTx;
+      }
+#if 0
        scan_and_config();
        for(i = 0; i < RJ_NUM; i++)
        {
          UART_Send(USARTx, GPIO_STATE[i].l_num);
          UART_Send(USARTx, GPIO_STATE[i].h_num);
        }
+#endif
       RecvBuf[port].act_lenth = 0;            //处理完命令后清零
     }
     else if((RecvBuf[port].buf[0]== 'v')&&(RecvBuf[port].buf[1]== 'e')&&(RecvBuf[port].buf[2]== 'r')&&(RecvBuf[port].buf[3]== 's'))
@@ -2020,19 +2032,38 @@ int SetDownLoadRecorder(void)
 
 void process_6(void *pdata)
 {
+  int i;
+  
   while(1)
   {
-  if(pstwo_use_flag)
-  {
-    PS2_ShortPoll();
-  }
-  OSTimeDlyHMSM(0,0,0,500);
+  
+  switch(COMM.cmd)
+   {
+     case SCAN:
+       scan_and_config();
+       for(i = 0; i < RJ_NUM; i++)
+       {
+         UART_Send(COMM.USARTx, GPIO_STATE[i].l_num);
+         UART_Send(COMM.USARTx, GPIO_STATE[i].h_num);
+       }
+       COMM.cmd = NCMD;
+       break;
+     
+     default:
+       break;
+   } 
+    
+    
+    if(pstwo_use_flag)
+    {
+      PS2_ShortPoll();
+    }
+    OSTimeDlyHMSM(0,0,0,500);
   }
 }
 
 void led_flash(ELED en)
 {}
-
 
 
 

@@ -354,15 +354,19 @@ void servo(int cha, int p)
     up = (unsigned int)p;
     wr_buf[0] = (up&0x0FF);
     wr_buf[1] = (up >> 8)&0x0FF;
-    res = i2c_WriteBytes(wr_buf, SERVO_I2C_BEG, 2, cha - 1);
+    
+    for(i = 0; i<3; i++)
+    {
+      res = i2c_WriteBytes(wr_buf, SERVO_I2C_BEG, 2, cha - 1);
+      if(res != 0)
+      {
+        break;
+      }
+    }
     
     if(res == 0)
     {
-      printf("servo err \n\r");
-    }
-    else
-    {
-     printf("servo ok \n\r");
+      PutString(0,108,"E:servo");
     }
   }
 }
@@ -594,7 +598,7 @@ int  left_button_read(void)
    #endif
    if(mid < 904)		//1.1V㏒?車D～∩?邦～∩??那㊣米赤米???
     return 1;			//﹞米??1㊣赤那?車D～∩?邦～∩??
-    else
+   else
     return 0;
 }
 

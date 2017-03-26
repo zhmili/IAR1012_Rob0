@@ -75,7 +75,7 @@ uint8_t i2c_RBytes_16btAdr(uint8_t *_pReadBuf, uint16_t _usAddress, uint16_t _us
 	/* 第5步：等待ACK */
 	if (i2c_WaitAck(port) != 0)
 	{
-		goto cmd_fail;	/* EEPROM器件无应答 */
+	  goto cmd_fail;	/* EEPROM器件无应答 */
 	}
 	
 	/* 第6步：重新启动I2C总线。前面的代码的目的向EEPROM传送地址，下面开始读取数据 */
@@ -87,7 +87,7 @@ uint8_t i2c_RBytes_16btAdr(uint8_t *_pReadBuf, uint16_t _usAddress, uint16_t _us
 	/* 第8步：发送ACK */
 	if (i2c_WaitAck(port) != 0)
 	{
-		goto cmd_fail;	/* EEPROM器件无应答 */
+	  goto cmd_fail;	/* EEPROM器件无应答 */
 	}	
 	
 	/* 第9步：循环读取数据 */
@@ -144,16 +144,15 @@ uint8_t ee_ReadBytes(uint8_t *_pReadBuf, uint16_t _usAddress, uint16_t _usSize, 
 	{
 		goto cmd_fail;	/* EEPROM器件无应答 */
 	}
-	
+        
 	/* 第4步：发送字节地址，24C02只有256字节，因此1个字节就够了，如果是24C04以上，那么此处需要连发多个地址 */
 	i2c_SendByte((uint8_t)_usAddress, port);
-	
 	/* 第5步：等待ACK */
 	if (i2c_WaitAck(port) != 0)
 	{
 		goto cmd_fail;	/* EEPROM器件无应答 */
 	}
-	
+
 	/* 第6步：重新启动I2C总线。前面的代码的目的向EEPROM传送地址，下面开始读取数据 */
 	i2c_Start(port);
 	
@@ -163,11 +162,11 @@ uint8_t ee_ReadBytes(uint8_t *_pReadBuf, uint16_t _usAddress, uint16_t _usSize, 
 	/* 第8步：发送ACK */
 	if (i2c_WaitAck(port) != 0)
 	{
-		goto cmd_fail;	/* EEPROM器件无应答 */
+	    goto cmd_fail;	/* EEPROM器件无应答 */
 	}	
 	
        //读取存在问题 少了个脉冲！！！
-        for (i = 0; i < 200; i++);
+        for (i = 0; i < 80; i++);
         
 	/* 第9步：循环读取数据 */
 	for (i = 0; i < _usSize; i++)
